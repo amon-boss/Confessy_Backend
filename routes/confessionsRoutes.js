@@ -1,29 +1,24 @@
 const express = require('express');
-const Confession = require('../models/Confession');
 const router = express.Router();
+const auth = require('../middleware/auth');
+const Confession = require('../models/Confession');
 
-// Poster une confession
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
   try {
-    const newConf = new Confession(req.body);
-    await newConf.save();
-    res.status(201).json(newConf);
+    const confession = new Confession({ user: req.userId, content: req.body.content });
+    await confession.save();
+    res.json(confession);
   } catch (err) {
-    res.status(500).json({ msg: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// Obtenir les confessions (défilement infini)
 router.get('/', async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
   try {
-    const confs = await Confession.find()
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(Number(limit));
-    res.json(confs);
+    const confessions = await Confession.find().sort({ createdAt: -1 }).populate('user');
+    res.json(confessions);
   } catch (err) {
-    res.status(500).json({ msg: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
