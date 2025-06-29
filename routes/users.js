@@ -1,41 +1,28 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
 const Confession = require('../models/Confession');
 
-// Récupérer les confessions d'un utilisateur
-router.get('/:id/confessions', async (req, res) => {
+// Créer une confession
+router.post('/', async (req, res) => {
+  const { userId, username, anonymous, content } = req.body;
   try {
-    const confessions = await Confession.find({ userId: req.params.id });
-    res.json({ success: true, confessions });
+    const confession = new Confession({ userId, username, anonymous, content });
+    await confession.save();
+    res.json({ success: true, confession });
   } catch (err) {
-    res.status(500).json({ success: false, error: 'Erreur' });
+    res.status(500).json({ success: false, error: 'Erreur lors de la publication.' });
   }
 });
 
-// Mettre à jour profil
-router.post('/:id/update', async (req, res) => {
-  const { username, isAnonymous } = req.body;
+// Récupérer toutes les confessions
+router.get('/', async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    user.username = isAnonymous ? null : username;
-    user.isAnonymous = isAnonymous;
-    await user.save();
-    res.json({ success: true });
+    const confessions = await Confession.find().sort({ createdAt: -1 });
+    res.json(confessions);
   } catch (err) {
-    res.status(500).json({ success: false, error: 'Erreur mise à jour' });
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
-// Supprimer le compte
-router.post('/:id/delete', async (req, res) => {
-  try {
-    await User.findByIdAndDelete(req.params.id);
-    await Confession.deleteMany({ userId: req.params.id });
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ success: false, error: 'Erreur suppression' });
-  }
-});
-
+// ✅ C’EST CETTE LIGNE QUI MANQUAIT
 module.exports = router;
