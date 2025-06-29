@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  contact: { type: String, unique: true },
-  password: String,
-  username: { type: String, unique: false },
-  isAnonymous: Boolean
+  emailOrPhone: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  username: { type: String },
+  isAnonymous: { type: Boolean, default: false }
 });
 
 module.exports = mongoose.model('User', userSchema);
